@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平年闰年判断游戏</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .game-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .year-display {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #444;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .explanation {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #666;
+        }
+        .score {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .help {
+            margin: 20px 0;
+            text-align: left;
+            font-size: 14px;
+            color: #666;
+        }
+        .help h3 {
+            color: #333;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>平年闰年判断游戏</h1>
+        <p>规则：根据提示判断年份是平年还是闰年。</p >
+        <p>输入'平'或'闰'作答，输入'帮助'查看规则，输入'退出'结束游戏。</p >
+        
+        <div class="year-display" id="yearDisplay">当前年份：--</div>
+        
+        <div class="input-group">
+            <input type="text" id="userInput" placeholder="请输入判断（平/闰）">
+            <button onclick="submitAnswer()">提交</button>
+        </div>
+        
+        <div class="result" id="result"></div>
+        <div class="explanation" id="explanation"></div>
+        <div class="score" id="score">得分：0/0 (0%)</div>
+        
+        <div class="help" id="helpSection" style="display: none;">
+            <h3>闰年规则：</h3>
+            <ol>
+                <li>能被4整除，但不可被100整除 → 闰年</li>
+                <li>能被400整除 → 闰年</li>
+                <li>其他情况均为平年</li>
+            </ol>
+            <p>示例：2000(闰), 1900(平), 2020(闰), 2021(平)</p >
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let total = 0;
+        let currentYear = null;
+        const helpSection = document.getElementById('helpSection');
+        
+        function isLeap(year) {
+            return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
+        }
+        
+        function explainLeapRule(year) {
+            if (isLeap(year)) {
+                if (year % 400 === 0) {
+                    return `${year}能被400整除 → 闰年`;
+                } else if (year % 100 === 0) {
+                    return `${year}能被100整除但无法被400整除 → 平年`;
+                } else {
+                    return `${year}能被4整除且非整百年 → 闰年`;
+                }
+            } else {
+                if (year % 4 !== 0) {
+                    return `${year}不能被4整除 → 平年`;
+                } else {
+                    return `${year}虽能被4整除，但为整百年且无法被400整除 → 平年`;
+                }
+            }
+        }
+        
+        function generateRandomYear() {
+            return Math.floor(Math.random() * (2100 - 1600 + 1)) + 1600;
+        }
+        
+        function updateYearDisplay(year) {
+            document.getElementById('yearDisplay').textContent = `当前年份：${year}`;
+        }
+        
+        function updateScore() {
+            const scoreElement = document.getElementById('score');
+            const percentage = total > 0 ? (score / total * 100).toFixed(0) : 0;
+            scoreElement.textContent = `得分：${score}/${total} (${percentage}%)`;
+        }
+        
+        function showHelp() {
+            helpSection.style.display = 'block';
+        }
+        
+        function hideHelp() {
+            helpSection.style.display = 'none';
+        }
+        
+        function submitAnswer() {
+            const userInput = document.getElementById('userInput').value.trim().toLowerCase();
+            const resultElement = document.getElementById('result');
+            const explanationElement = document.getElementById('explanation');
+            
+            if (userInput === '帮助') {
+                hideHelp();
+                showHelp();
+                return;
+            } else if (userInput === '退出') {
+                alert('游戏结束！感谢参与！');
+                location.reload();
+                return;
+            }
+            
+            if (!currentYear) {
+                currentYear = generateRandomYear();
+                updateYearDisplay(currentYear);
+            }
+            
+            const correctAnswer = isLeap(currentYear) ? '闰' : '平';
+            
+            if (userInput.startsWith('平') || userInput.startsWith('闰')) {
+                total++;
+                updateScore();
+                
+                if (userInput === correctAnswer) {
+                    resultElement.className = 'result correct';
+                    resultElement.textContent = '✓ 正确！';
+                    score++;
+                } else {
+                    resultElement.className = 'result incorrect';
+                    resultElement.textContent = '✗ 错误！';
+                }
+                
+                explanationElement.textContent = explainLeapRule(currentYear);
+                
+                // 生成下一个年份
+                setTimeout(() => {
+                    currentYear = generateRandomYear();
+                    updateYearDisplay(currentYear);
+                    document.getElementById('userInput').value = '';
+                    resultElement.textContent = '';
+                    explanationElement.textContent = '';
+                }, 2000);
+            } else {
+                alert("无效输入！请重新输入'平'或'闰'。");
+            }
+        }
+        
+        // 初始化
+        currentYear = generateRandomYear();
+        updateYearDisplay(currentYear);
+    </script>
+</body>
+</html>
